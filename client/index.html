@@ -41,6 +41,9 @@
                 
               userName = document.querySelector('#username').value;
               
+              const signIn = document.querySelector('#signIn');
+              signIn.innerHTML = "<p>Please wait for players</p>";
+                
               socket.emit('join', { name: userName });
             });
             
@@ -73,6 +76,10 @@
         };
 
         const treatee = () => {
+            
+            const signIn = document.querySelector('#signIn');
+              signIn.innerHTML = "";
+                
             
           const content = document.querySelector("#mainMessage");
           
@@ -107,10 +114,13 @@
     </script>
 </head>
 <body>
-    <label id="welcome" >Welcome to Treat me!</label> <br />
-    <label for="user">Username: </label>
-    <input id="username" type="text" />
-    <input id='connect' type='button' value='send' />
+    <div id="signIn">
+        <label id="welcome" >Welcome to Treat me!</label> <br />
+        <label for="user">Username: </label>
+        <input id="username" type="text" />
+        <input id='connect' type='button' value='send' />
+    </div>
+    
     <div id='mainMessage'></div>
 </body>
 </html>
