@@ -39,18 +39,18 @@ const onJoined = (sock) => {
     // send the user to their room
     socket.join(`room${nextRoom}`);
 
-    
+
     // if the room isn't in the roomList
-    if(!roomList[`room${nextRoom}`]){
-        
+    if (!roomList[`room${nextRoom}`]) {
       console.log(`adding room ${nextRoom} to roomList`);
       roomList[`room${nextRoom}`] = {};
       roomList[`room${nextRoom}`].userList = {};
     }
+
     // add their username to the user list
     roomList[`room${nextRoom}`].userList[currentRoomCount] = data.name;
     console.log(`Name added ${data.name}`);
-      
+
     // if there are 3 people in the room, start the game
     // and change the name of the room for the next party
     if (currentRoomCount > 2) {
@@ -60,17 +60,24 @@ const onJoined = (sock) => {
       if (randomJudge === 4) randomJudge = 3;
 
       const chosenJudge = roomList[`room${nextRoom}`].userList[randomJudge];
-      
+
       console.log(`chosen Judge ${randomJudge}`);
       console.log(roomList[`room${nextRoom}`].userList[randomJudge]);
-        
+
       // start the game when the room limit is reached, and send the chosen judge back to the client
-      io.sockets.in(`room${nextRoom}`).emit('startRoom', { chosen: chosenJudge });
+      io.sockets.in(`room${nextRoom}`).emit('startRoom', { chosen: chosenJudge, room: nextRoom });
       nextRoom++;
       currentRoomCount = 0;
     }
   });
+
+  socket.on('treatmentChosen', (data) => {
+    console.log('inside treatmentChosen, room: ' + data.room);
+      
+    io.sockets.in(`room${data.room}`).emit('treaterStart', { treatmentSelected: data.treatmentSelected });
+  });
 };
+
 
 io.sockets.on('connection', (socket) => {
   console.log('started');

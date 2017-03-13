@@ -29,7 +29,9 @@
 
         let socket;
         let userName;
-        
+        let judge;
+        let myRoom;
+        let treatment;
         
         const setupSocket = () => {
             
@@ -44,36 +46,49 @@
             
             // begin setting up the room, save the room name client side
             socket.on('startRoom', (data) => {
+                
               console.log('started room');
               console.log(data.chosen);
+              judge = data.chosen;
+              myRoom = data.room;
+    
               if(userName === data.chosen) {
-                console.log('started treating');
+                  
+                console.log('asking for treatment');
                   treatee();
-                
               }
-//              else {
-//                socket.on('startTreating', () => {
-//                  treater();
-//                });
-//              }
-                
             });
+            
+            socket.on('treaterStart', (data) => {
+            console.log('inside treaterStart. userName: ' + userName + ' judge: ' + judge);
+              
+            if(userName !== judge){
+              console.log('Treating, start!');
+              treatment = data.treatmentSelected;
+              const content = document.querySelector('#mainMessage')
+            
+              content.innerHTML = "<b>Treat your judge like a " + treatment + "</b> <br /> <input id='appeasement' type='text' /> <input id='sendAppeasement' type='button' value='send' />";
+            }
+          });
         };
 
         const treatee = () => {
             
           const content = document.querySelector("#mainMessage");
           
-          content.innerHTML = `<b>How do you want to be treated?</b> <br /> <input id="treatment" type="text" />
+          content.innerHTML = `<b>How do you want to be treated? (To Cody: this is as far as I could get. There's more that I haven't fully figured out yet.)</b> <br /> <input id="treatment" type="text" />
     <input id='sendTreatment' type='button' value='send' />`;
+            
+          const sendTreatment = document.querySelector('#sendTreatment');
+          sendTreatment.addEventListener('click', treater);
+          
+            
         };
 
-        const treater = (content) => {
-            
-          console.log('Treating, start!');
-          const treatment = document.querySelector('#treatment').value;
-          
-          content.innerHTML = `<b>Treat your judge like a ${treatment} </b> <br /> <input id='appeasement' type='text' /> <input id='sendAppeasement' type='button' value='send' />`;
+        const treater = () => {
+        
+          treatment = document.querySelector('#treatment').value;
+          socket.emit('treatmentChosen', { room: myRoom, treatmentSelected: treatment });
         };
 
 
@@ -82,11 +97,7 @@
           const connect = document.querySelector('#connect');
           connect.addEventListener('click', setupSocket);
             
-          if(document.querySelector('#sendTreatment')) {
-            console.log('I have recognized that the sendTreatment button exists');
-            const sendTreatment = document.querySelector('#sendTreatment');
-            sendTreatment.addEventListener('click', treater(content));
-          }
+          
             
         };
         
