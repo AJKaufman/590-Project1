@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding:0;
+      }
+      
+      canvas {
+        margin: 10px;
+        border: 1px solid black;
+      }
+      
+      p {
+        margin-left: 12px;
+        font-size: 1.2em;
+        width: 50%; 
+      }
+    </style>
+    
+    <script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/babel" >
+        "use strict";
+        // Some code taken from websockets-n-boots-ajk by Aidan Kaufman
+
+        let socket;
+        let userName;
+        
+        
+        const setupSocket = () => {
+            
+            socket = io.connect();
+            
+            socket.on('connect', () => {
+                
+              userName = document.querySelector('#username').value;
+              
+              socket.emit('join', { name: userName });
+            });
+            
+            // begin setting up the room, save the room name client side
+            socket.on('startRoom', (data) => {
+              console.log('started room');
+              console.log(data.chosen);
+              if(userName === data.chosen) {
+                console.log('started treating');
+                  treatee();
+                
+              }
+//              else {
+//                socket.on('startTreating', () => {
+//                  treater();
+//                });
+//              }
+                
+            });
+        };
+
+        const treatee = () => {
+            
+          const content = document.querySelector("#mainMessage");
+          
+          content.innerHTML = `<b>How do you want to be treated?</b> <br /> <input id="treatment" type="text" />
+    <input id='sendTreatment' type='button' value='send' />`;
+        };
+
+        const treater = (content) => {
+            
+          console.log('Treating, start!');
+          const treatment = document.querySelector('#treatment').value;
+          
+          content.innerHTML = `<b>Treat your judge like a ${treatment} </b> <br /> <input id='appeasement' type='text' /> <input id='sendAppeasement' type='button' value='send' />`;
+        };
+
+
+        const init = () => {            
+          // setup the socket
+          const connect = document.querySelector('#connect');
+          connect.addEventListener('click', setupSocket);
+            
+          if(document.querySelector('#sendTreatment')) {
+            console.log('I have recognized that the sendTreatment button exists');
+            const sendTreatment = document.querySelector('#sendTreatment');
+            sendTreatment.addEventListener('click', treater(content));
+          }
+            
+        };
+        
+        window.onload = init;
+            
+    
+    </script>
+</head>
+<body>
+    <label id="welcome" >Welcome to Treat me!</label> <br />
+    <label for="user">Username: </label>
+    <input id="username" type="text" />
+    <input id='connect' type='button' value='send' />
+    <div id='mainMessage'></div>
+</body>
+</html>
