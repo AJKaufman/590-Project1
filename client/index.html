@@ -32,7 +32,9 @@
 
 let socket;
 let userName;
+let myScore;
 let judge;
+let judgeOrder;
 let myRoom;
 let treatment;
 let player1;
@@ -59,6 +61,7 @@ const setupSocket = () => {
     console.log('started room');
     console.log(data.chosen);
     judge = data.chosen;
+    judgeOrder = data.judgeOrder;
     myRoom = data.room;
     player1 = data.player1;
     player2 = data.player2;
@@ -68,6 +71,9 @@ const setupSocket = () => {
 
       console.log('asking for treatment');
       treatee();
+    } else  {
+      const signIn = document.querySelector('#signIn');
+      signIn.innerHTML = "<p>Your judge is chosing their treatment...please wait.</p>";
     }
   });
 
@@ -97,6 +103,15 @@ const setupSocket = () => {
     chat.scrollTop = chat.scrollHeight;
   });
   
+  
+  // gives the player a point if they earned it in the last round
+  socket.on('givePoint', (data) => {
+    if(data.name === userName) {
+      myScore += 1;
+    }
+    
+    
+  });
 };
 
 
@@ -108,11 +123,11 @@ const sendAppeasement = () => {
   
   let appeasement;
   if(document.querySelector('#appeasement').value){
+    
     appeasement = document.querySelector('#appeasement').value;
     document.querySelector('#appeasement').value = "";
+    socket.emit('appease', { appeasement: appeasement, room: myRoom, name: userName });
   }
-  
-  socket.emit('appease', { appeasement: appeasement, room: myRoom, name: userName });
 };
 
 // asks the treatee what treatment they want
@@ -143,17 +158,42 @@ const choseTreatment = (content) => {
   
     treatment = document.querySelector('#treatment').value;
     console.log(treatment);
-  
+    
+    let contestant1;
+    let contestant2;
+    
     if(userName === player1) {
-      content.innerHTML = `<div><input id="sender1" type="button" value="${player2} is the better treater!" />  <input id="sender2" type="button" value="${player3} is the better treater!" /> </div>`;
+      contestant1 = player2;
+      contestant2 = player3;
     } else if(userName === player2){
-      content.innerHTML = `<div><input id="sender1" type="button" value="${player1} is the better treater!" /> <input id="sender2" type="button" value="${player3} is the better treater!" /> </div>`;
+      contestant1 = player1;
+      contestant2 = player3;
     } else if(userName === player3){
-      content.innerHTML = `<div><input id="sender1" type="button" value="${player1} is the better treater!" /> <input id="sender2" type="button" value="${player2} is the better treater!" /> </div>`;
+      contestant1 = player1;
+      contestant2 = player2;
     }
     
+    content.innerHTML = `<div><input id="sender1" type="button" value="${contestant1} is the better treater!" />  <input id="sender2" type="button" value="${contestant2} is the better treater!" /> </div>`;
     content.innerHTML += "<br /> <div id='chat' rows='20' cols='40' readonly></div>";
     
+    const choseSender1 = document.querySelector('#sender1');
+    const choseSender2 = document.querySelector('#sender2');
+    choseSender1.addEventListener('click', () => {
+      socket.emit('winnerChosen', { 
+        name: contestant1,
+        room: myRoom,
+        currentJudge: judgeOrder
+      });
+    });
+  
+    choseSender2.addEventListener('click', () => {
+      socket.emit('winnerChosen', { 
+        name: contestant2,
+        room: myRoom,
+        currentJudge: judgeOrder
+      });
+    });
+  
     socket.emit('treatmentChosen', { room: myRoom, treatmentSelected: treatment });
 };
 

@@ -65,8 +65,8 @@ const onJoined = (sock) => {
       console.log(roomList[`room${nextRoom}`].userList[randomJudge]);
 
       // start the game when the room limit is reached, and send the chosen judge back to the client
-      io.sockets.in(`room${nextRoom}`).emit('startRoom', { chosen: chosenJudge, room: nextRoom, player1: roomList[`room${nextRoom}`].userList[1], player2: roomList[`room${nextRoom}`].userList[2], player3: roomList[`room${nextRoom}`].userList[3] });
-      
+      io.sockets.in(`room${nextRoom}`).emit('startRoom', { chosen: chosenJudge, room: nextRoom, player1: roomList[`room${nextRoom}`].userList[1], player2: roomList[`room${nextRoom}`].userList[2], player3: roomList[`room${nextRoom}`].userList[3], judgeOrder: randomJudge });
+
       nextRoom++;
       currentRoomCount = 0;
     }
@@ -78,11 +78,45 @@ const onJoined = (sock) => {
 
     io.sockets.in(`room${data.room}`).emit('treaterStart', { treatmentSelected: data.treatmentSelected });
   });
-  
+
   // gets appeasement on server and displays it in each room
   socket.on('appease', (data) => {
     io.sockets.in(`room${data.room}`).emit('broadcastAppeasement', { appeasement: data.appeasement, name: data.name });
   });
+
+  // assign a winner, restart the game
+  socket.on('winnerChosen', (data) => {
+        
+    io.sockets.in(`room${data.room}`).emit('givePoint', { name: data.name });
+
+    console.log("starting a new room");
+
+    let chosenJudge;
+
+    // cycle the judges
+    if (data.currentJudge === 1) {
+      chosenJudge = 2;
+    } else if (data.currentJudge === 2) {
+      chosenJudge = 3;
+    } else {
+      chosenJudge = 1;
+    }
+
+    console.log(`new Judge is ${chosenJudge}`);
+    console.log(roomList[`room${data.room}`].userList[chosenJudge]);
+
+    // restart the game and send the next judge back to the client
+    io.sockets.in(`room${data.room}`).emit('startRoom', { 
+      chosen: data.name,
+      room: data.room,
+      player1: roomList[`room${data.room}`].userList[1],
+      player2: roomList[`room${data.room}`].userList[2],
+      player3: roomList[`room${data.room}`].userList[3],
+      judgeOrder: chosenJudge
+
+    });
+  });
+  
 };
 
 
