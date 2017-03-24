@@ -86,10 +86,9 @@ const onJoined = (sock) => {
 
   // assign a winner, restart the game
   socket.on('winnerChosen', (data) => {
-        
     io.sockets.in(`room${data.room}`).emit('givePoint', { name: data.name });
 
-    console.log("starting a new room");
+    console.log('starting a new room');
 
     let chosenJudge;
 
@@ -106,17 +105,21 @@ const onJoined = (sock) => {
     console.log(roomList[`room${data.room}`].userList[chosenJudge]);
 
     // restart the game and send the next judge back to the client
-    io.sockets.in(`room${data.room}`).emit('startRoom', { 
+    io.sockets.in(`room${data.room}`).emit('startRoom', {
       chosen: data.name,
       room: data.room,
       player1: roomList[`room${data.room}`].userList[1],
       player2: roomList[`room${data.room}`].userList[2],
       player3: roomList[`room${data.room}`].userList[3],
-      judgeOrder: chosenJudge
+      judgeOrder: chosenJudge,
 
     });
   });
-  
+
+  // receives the winner server side and sends it back to all clients
+  socket.on('sendVictor', (data) => {
+    io.sockets.in(`room${data.room}`).emit('endGame', { winner: data.winner });
+  });
 };
 
 

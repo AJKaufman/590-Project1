@@ -48,7 +48,7 @@ const setupSocket = () => {
   socket.on('connect', () => {
 
     userName = document.querySelector('#username').value;
-
+    myScore = 0;
     const signIn = document.querySelector('#signIn');
     signIn.innerHTML = "<p>Please wait for players</p>";
 
@@ -67,13 +67,16 @@ const setupSocket = () => {
     player2 = data.player2;
     player3 = data.player3;
 
+    let content = document.querySelector('#mainMessage');
+    content.innerHTML = "";
+    
     if(userName === data.chosen) {
 
       console.log('asking for treatment');
       treatee();
     } else  {
       const signIn = document.querySelector('#signIn');
-      signIn.innerHTML = "<p>Your judge is chosing their treatment...please wait.</p>";
+      signIn.innerHTML = "<p>Your judge is choosing their treatment...please wait.</p>";
     }
   });
 
@@ -105,15 +108,32 @@ const setupSocket = () => {
   
   
   // gives the player a point if they earned it in the last round
+  // checks if the player won the game
   socket.on('givePoint', (data) => {
     if(data.name === userName) {
       myScore += 1;
+      console.log('My score is: ' + myScore);
     }
     
+    if(myScore > 2) {
+      console.log('I win!');
+      socket.emit('sendVictor', { room: myRoom, winner: userName } );
+    }
+    
+  });
+  
+  
+  // ends the game
+  socket.on('endGame', (data) => {
+    console.log('endgame accomplished!');
+    
+    const signIn = document.querySelector('#signIn');
+    signIn.innerHTML = "";
+    const content = document.querySelector('#mainMessage');
+    content.innerHTML = "<b>" + data.winner + " is the winner!!!!</b>";
     
   });
 };
-
 
 // sends appeasement to the server
 const sendAppeasement = () => {
@@ -148,7 +168,10 @@ const treatee = () => {
   const sendTreatment = document.querySelector('#sendTreatment');
   console.dir(sendTreatment);
   sendTreatment.addEventListener('click', () => {
-    choseTreatment(content) });
+      if(document.querySelector('#treatment').value){
+        choseTreatment(content);
+      }
+  });
 
 
 };
