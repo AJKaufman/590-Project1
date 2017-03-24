@@ -129,5 +129,16 @@ io.sockets.on('connection', (socket) => {
   onJoined(socket);
 });
 
+//  // remove a user from the user object
+//  socket.on('disconnect', () => {
+//        // announcement to everyone in the room
+//
+//    socket.broadcast.to('memeHouse').emit('msg', response);
+//    console.log(`${socket.name} left`);
+//    socket.leave('memeHouse');
+//
+//    delete users[socket.name];
+//  });
+
 console.log('Websocket server started');
 
