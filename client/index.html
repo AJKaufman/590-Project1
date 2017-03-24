@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <style>
       html, body {
+        position: absolute;
         width: 100%;
         height: 100%;
         margin: 0;
         padding:0;
+        background-color: #284B63;
+        color: #EEF0EB;
+        padding-top: 3%;
       }
-      
-      canvas {
-        margin: 10px;
-        border: 1px solid black;
+
+      div {
+        text-align: center;
       }
       
       p {
@@ -20,107 +23,161 @@
         width: 50%; 
       }
     </style>
-    
+
     <script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/babel" >
-        "use strict";
-        // Some code taken from websockets-n-boots-ajk by Aidan Kaufman
+"use strict";
+// Some code taken from websockets-n-boots-ajk by Aidan Kaufman
 
-        let socket;
-        let userName;
-        let judge;
-        let myRoom;
-        let treatment;
-        
-        const setupSocket = () => {
-            
-            socket = io.connect();
-            
-            socket.on('connect', () => {
-                
-              userName = document.querySelector('#username').value;
-              
-              const signIn = document.querySelector('#signIn');
-              signIn.innerHTML = "<p>Please wait for players</p>";
-                
-              socket.emit('join', { name: userName });
-            });
-            
-            // begin setting up the room, save the room name client side
-            socket.on('startRoom', (data) => {
-                
-              console.log('started room');
-              console.log(data.chosen);
-              judge = data.chosen;
-              myRoom = data.room;
+let socket;
+let userName;
+let judge;
+let myRoom;
+let treatment;
+let player1;
+let player2;
+let player3;
+
+const setupSocket = () => {
+
+  socket = io.connect();
+
+  socket.on('connect', () => {
+
+    userName = document.querySelector('#username').value;
+
+    const signIn = document.querySelector('#signIn');
+    signIn.innerHTML = "<p>Please wait for players</p>";
+
+    socket.emit('join', { name: userName });
+  });
+
+  // begin setting up the room, save the room name client side
+  socket.on('startRoom', (data) => {
+
+    console.log('started room');
+    console.log(data.chosen);
+    judge = data.chosen;
+    myRoom = data.room;
+    player1 = data.player1;
+    player2 = data.player2;
+    player3 = data.player3;
+
+    if(userName === data.chosen) {
+
+      console.log('asking for treatment');
+      treatee();
+    }
+  });
+
+  socket.on('treaterStart', (data) => {
+    console.log('inside treaterStart. userName: ' + userName + ' judge: ' + judge);
+
+    if(userName !== judge){
+      treatment = data.treatmentSelected;
+      const content = document.querySelector('#mainMessage');
+      const signIn = document.querySelector('#signIn');
+      signIn.innerHTML = "";
+      
+      content.innerHTML = "<b>Treat your judge " + treatment + "</b> <br /> <input id='appeasement' type='text' /> <input id='sendAppeasement' type='button' value='send' />";
+      content.innerHTML += "<br /> <div id='chat' rows='20' cols='40' readonly></div>";
+      
+      
+      const appeasementButton = document.querySelector('#sendAppeasement');
+      appeasementButton.addEventListener('click', sendAppeasement);
+    }
+  });
+  
+  // displays appeasement to chat box
+  socket.on('broadcastAppeasement', (data) => {
+    console.log('displaying appeasement');
+    const chat = document.querySelector('#chat');
+    chat.innerHTML += '<div>' + data.name + ': ' + data.appeasement + '</div>\n';
+    chat.scrollTop = chat.scrollHeight;
+  });
+  
+};
+
+
+// sends appeasement to the server
+const sendAppeasement = () => {
+  console.log('sending appeasement');
+  
+  
+  
+  let appeasement;
+  if(document.querySelector('#appeasement').value){
+    appeasement = document.querySelector('#appeasement').value;
+    document.querySelector('#appeasement').value = "";
+  }
+  
+  socket.emit('appease', { appeasement: appeasement, room: myRoom, name: userName });
+};
+
+// asks the treatee what treatment they want
+const treatee = () => {
+
+  console.log("treatee");
+  
+  const signIn = document.querySelector('#signIn');
+  signIn.innerHTML = "";
+
+
+  const content = document.querySelector("#mainMessage");
+
+  content.innerHTML = `<b>How do you want to be treated?</b> <br /> <input id="treatment" type="text" />
+<input id='sendTreatment' type='button' value='send' />`;
+  
+  
+  const sendTreatment = document.querySelector('#sendTreatment');
+  console.dir(sendTreatment);
+  sendTreatment.addEventListener('click', () => {
+    choseTreatment(content) });
+
+
+};
+
+// sets up the chat boxes and buttons to let you choose the winner
+const choseTreatment = (content) => {
+  
+    treatment = document.querySelector('#treatment').value;
+    console.log(treatment);
+  
+    if(userName === player1) {
+      content.innerHTML = `<div><input id="sender1" type="button" value="${player2} is the better treater!" />  <input id="sender2" type="button" value="${player3} is the better treater!" /> </div>`;
+    } else if(userName === player2){
+      content.innerHTML = `<div><input id="sender1" type="button" value="${player1} is the better treater!" /> <input id="sender2" type="button" value="${player3} is the better treater!" /> </div>`;
+    } else if(userName === player3){
+      content.innerHTML = `<div><input id="sender1" type="button" value="${player1} is the better treater!" /> <input id="sender2" type="button" value="${player2} is the better treater!" /> </div>`;
+    }
     
-              if(userName === data.chosen) {
-                  
-                console.log('asking for treatment');
-                  treatee();
-              }
-            });
-            
-            socket.on('treaterStart', (data) => {
-            console.log('inside treaterStart. userName: ' + userName + ' judge: ' + judge);
-              
-            if(userName !== judge){
-              console.log('Treating, start!');
-              treatment = data.treatmentSelected;
-              const content = document.querySelector('#mainMessage')
-            
-              content.innerHTML = "<b>Treat your judge like a " + treatment + "</b> <br /> <input id='appeasement' type='text' /> <input id='sendAppeasement' type='button' value='send' />";
-            }
-          });
-        };
-
-        const treatee = () => {
-            
-            const signIn = document.querySelector('#signIn');
-              signIn.innerHTML = "";
-                
-            
-          const content = document.querySelector("#mainMessage");
-          
-          content.innerHTML = `<b>How do you want to be treated? (To Cody: this is as far as I could get. There's more that I haven't fully figured out yet.)</b> <br /> <input id="treatment" type="text" />
-    <input id='sendTreatment' type='button' value='send' />`;
-            
-          const sendTreatment = document.querySelector('#sendTreatment');
-          sendTreatment.addEventListener('click', treater);
-          
-            
-        };
-
-        const treater = () => {
-        
-          treatment = document.querySelector('#treatment').value;
-          socket.emit('treatmentChosen', { room: myRoom, treatmentSelected: treatment });
-        };
-
-
-        const init = () => {            
-          // setup the socket
-          const connect = document.querySelector('#connect');
-          connect.addEventListener('click', setupSocket);
-            
-          
-            
-        };
-        
-        window.onload = init;
-            
+    content.innerHTML += "<br /> <div id='chat' rows='20' cols='40' readonly></div>";
     
+    socket.emit('treatmentChosen', { room: myRoom, treatmentSelected: treatment });
+};
+
+
+const init = () => {
+  
+  // setup the socket
+  const connect = document.querySelector('#connect');
+  connect.addEventListener('click', setupSocket); 
+};
+
+window.onload = init;
+
+
     </script>
-</head>
-<body>
+  </head>
+  <body>
     <div id="signIn">
-        <label id="welcome" >Welcome to Treat me!</label> <br />
-        <label for="user">Username: </label>
-        <input id="username" type="text" />
-        <input id='connect' type='button' value='send' />
+      <label id="welcome" >Welcome to Treat me!</label> <br />
+      <label for="user">Username: </label>
+      <input id="username" type="text" />
+      <input id='connect' type='button' value='send' />
     </div>
-    
+
     <div id='mainMessage'></div>
-</body>
+  </body>
 </html>

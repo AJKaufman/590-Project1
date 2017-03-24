@@ -65,16 +65,23 @@ const onJoined = (sock) => {
       console.log(roomList[`room${nextRoom}`].userList[randomJudge]);
 
       // start the game when the room limit is reached, and send the chosen judge back to the client
-      io.sockets.in(`room${nextRoom}`).emit('startRoom', { chosen: chosenJudge, room: nextRoom });
+      io.sockets.in(`room${nextRoom}`).emit('startRoom', { chosen: chosenJudge, room: nextRoom, player1: roomList[`room${nextRoom}`].userList[1], player2: roomList[`room${nextRoom}`].userList[2], player3: roomList[`room${nextRoom}`].userList[3] });
+      
       nextRoom++;
       currentRoomCount = 0;
     }
   });
 
+  // when the judge selects treatment, send back the treatment to the treaters
   socket.on('treatmentChosen', (data) => {
-    console.log('inside treatmentChosen, room: ' + data.room);
-      
+    console.log(`inside treatmentChosen, room: ${data.room}`);
+
     io.sockets.in(`room${data.room}`).emit('treaterStart', { treatmentSelected: data.treatmentSelected });
+  });
+  
+  // gets appeasement on server and displays it in each room
+  socket.on('appease', (data) => {
+    io.sockets.in(`room${data.room}`).emit('broadcastAppeasement', { appeasement: data.appeasement, name: data.name });
   });
 };
 
