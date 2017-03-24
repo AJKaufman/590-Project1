@@ -53,7 +53,9 @@ const setupSocket = () => {
   socket.on('connect', () => {
  
     // resets the username if you put in a faulty one
-    if(document.querySelector('#username').value.indexOf('<') > -1){
+    if((document.querySelector('#username').value.indexOf('<') > -1) && (document.querySelector('#username').value)){
+      const content = document.querySelector('#mainMessage');
+      content.innerHTML = "<p>Invalid input: no < allowed</p>";
       return;
      }
     
@@ -168,6 +170,8 @@ const sendAppeasement = () => {
   
   // resets the username if you put in a faulty one
   if(appeasement.indexOf('<') > -1){
+    const signIn = document.querySelector('#signIn');
+    signIn.innerHTML = "<p>Invalid input: no < allowed</p>";
     return;
   }
   
@@ -183,7 +187,7 @@ const treatee = () => {
 
   console.log("treatee");
   
-  const signIn = document.querySelector('#signIn');
+  let signIn = document.querySelector('#signIn');
   signIn.innerHTML = "";
 
 
@@ -192,16 +196,14 @@ const treatee = () => {
   content.innerHTML = `<b>How do you want to be treated?</b> <br /> <input id="treatment" type="text" />
 <input id='sendTreatment' type='button' value='send' />`;
   
-  // resets the treatment if you put in a faulty one
-    if(document.querySelector('#treatment').value.indexOf('<') > -1){
-      return;
-     }
-  
+
   const sendTreatment = document.querySelector('#sendTreatment');
   console.dir(sendTreatment);
   sendTreatment.addEventListener('click', () => {
-      if(document.querySelector('#treatment').value){
+      if(document.querySelector('#treatment').value && (document.querySelector('#treatment').value.indexOf('<') <= -1)){
         chooseTreatment(content);
+      } else {
+        signIn.innerHTML = '<p>Invalid input: no < allowed</p>';
       }
   });
 
@@ -231,8 +233,10 @@ const chooseTreatment = (content) => {
   
     content.innerHTML = 'Treatment chosen: ' + treatment + '<br />';
     content.innerHTML += `<div><input id="sender1" type="button" value="${contestant1} is the better treater!" />  <input id="sender2" type="button" value="${contestant2} is the better treater!" /> </div>`;
-    content.innerHTML += "<br /> <div id='chat' rows='20' cols='40' readonly></div>";
+    content.innerHTML += "<br /> <div id='chat' rows='40' cols='40' readonly></div>";
     
+    console.log('currentJudge: ' + judgeOrder);
+  
     const choseSender1 = document.querySelector('#sender1');
     const choseSender2 = document.querySelector('#sender2');
     choseSender1.addEventListener('click', () => {
@@ -271,7 +275,7 @@ window.onload = init;
     <div id="signIn">
       <label id="welcome" >Welcome to Treat me!</label> <br />
       <label id="welcome" >The judge tells the treaters how they want to be treated and the treaters treat treat.</label> <br />
-      <label id="welcome" >The judge chooses the winner when they feel like it and that person gets a point. First to 3 wins!</label> <br />
+      <label id="welcome" >The judge chooses the winner when they feel like it and that person gets a point. 3 players required and first to 3 wins!</label> <br />
       <label for="user">Username: </label>
       <input id="username" type="text" />
       <input id='connect' type='button' value='send' />
