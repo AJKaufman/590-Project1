@@ -23,6 +23,19 @@
         width: 50%; 
       }
       
+      #welcome {
+        line-height: 1.5em;
+      }
+      
+      .setup {
+        margin-bottom: 1.5em;
+      }
+      
+      #signIn {
+        background-color: #2E648F;
+        opacity: 0.7;
+      }
+      
       #score {
         font-size: 2.4em;
       }
@@ -273,12 +286,16 @@ window.onload = init;
   </head>
   <body>
     <div id="signIn">
-      <label id="welcome" >Welcome to Treat me!</label> <br />
-      <label id="welcome" >The judge tells the treaters how they want to be treated and the treaters treat treat.</label> <br />
-      <label id="welcome" >The judge chooses the winner when they feel like it and that person gets a point. 3 players required and first to 3 wins!</label> <br />
+      <div class="setup">
+        <label id="welcome" >Welcome to Treat me!</label> <br />
+        <label id="welcome" >This is a 3 player game in which the judge tells the treaters how they want to be treated and the treaters treat.</label> <br />
+        <label id="welcome" >The judge chooses the winner when they feel like they've been treated well.</label> <br />
+        <label id="welcome" >The chosen person gets a point and becomes the next judge.</label> <br />
+        <label id="welcome" >First to 3 points wins! </label><br />
+      </div>
       <label for="user">Username: </label>
       <input id="username" type="text" />
-      <input id='connect' type='button' value='send' />
+      <input id='connect' type='button' value='send' /> <br />
     </div>
 
     <div id='score'></div> <br />
